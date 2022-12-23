@@ -48,9 +48,9 @@ export class UsersController {
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     await this.findOne(id);
 
-    const { name } = updateUserDto;
+    const { name, password } = updateUserDto;
 
-    return await this.usersService.update(id, { name });
+    return await this.usersService.update(id, { name, password });
   }
 
   @Delete(':id')
