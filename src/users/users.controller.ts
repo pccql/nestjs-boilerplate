@@ -8,10 +8,13 @@ import {
   Delete,
   HttpStatus,
   HttpException,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -25,14 +28,24 @@ export class UsersController {
       throw new HttpException('Email already taken', HttpStatus.BAD_REQUEST);
     }
 
-    return await this.usersService.create(createUserDto);
+    const salt = await bcrypt.genSalt();
+
+    const { password } = createUserDto;
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    return await this.usersService.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   async findAll() {
     return await this.usersService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const user = await this.usersService.findOne(id);
@@ -44,6 +57,7 @@ export class UsersController {
     return user;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     await this.findOne(id);
@@ -53,6 +67,7 @@ export class UsersController {
     return await this.usersService.update(id, { name, password });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     await this.findOne(id);
