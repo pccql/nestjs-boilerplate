@@ -5,6 +5,8 @@ services:
     build: .
     command: yarn dev
     env_file: .env
+    environment:
+      DATABASE_URL: "postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@db:5432/${DATABASE_USER}?schema=public"
     ports:
       - "3000:3000"
     volumes:
